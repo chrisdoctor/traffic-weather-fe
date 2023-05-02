@@ -7,7 +7,7 @@ import "../App.css";
 function MainScreen() {
   const [startDate, setStartDate] = useState(new Date());
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [trafficData, setTrafficData] = useState([]);
+  const [trafficData, setTrafficData] = useState([] as any);
   const [param, setParam] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -73,10 +73,13 @@ function MainScreen() {
           </button>
         )}
       </div>
-      <div className="scroll-div border pt-3">
+      <div
+        className="scroll-div border mt-3"
+        style={{ display: trafficData.length ? "block" : "none" }}
+      >
         <ul className="list-group p-3">
           {trafficData &&
-            trafficData.map((item: any, index) => {
+            trafficData.map((item: any, index: number) => {
               return (
                 <li
                   key={index}
@@ -94,6 +97,13 @@ function MainScreen() {
             })}
         </ul>
       </div>
+      {trafficData && selectedIndex !== -1 && (
+        <img
+          src={trafficData[selectedIndex].image}
+          className="card-img-top"
+          alt="traffic-image"
+        ></img>
+      )}
     </>
   );
 }
