@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { DateTime } from "luxon";
+import "../App.css";
 
 function MainScreen() {
   const [startDate, setStartDate] = useState(new Date());
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [trafficData, setTrafficData] = useState([]);
   const [param, setParam] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const url = "http://localhost:5000/traffic/traffic/abc"; // This can be placed in an dot env file
 
@@ -21,12 +23,16 @@ function MainScreen() {
 
   const handleClick = () => {
     console.log("PARAM", param);
+
+    setLoading(true);
+
     fetch(url)
       .then((res) => {
         return res.json();
       })
       .then((data) => {
         setTrafficData(data);
+        setLoading(false);
       })
       .catch((err) => {
         console.log(err.message);
@@ -46,33 +52,48 @@ function MainScreen() {
         />
       </div>
       <div className="ps-3">
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => handleClick()}
-        >
-          Search
-        </button>
+        {!loading && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => handleClick()}
+            disabled={loading}
+          >
+            Search
+          </button>
+        )}
+        {loading && (
+          <button className="btn btn-primary" type="button" disabled>
+            <span
+              className="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Loading...
+          </button>
+        )}
       </div>
-      <ul className="list-group p-3">
-        {trafficData &&
-          trafficData.map((item: any, index) => {
-            return (
-              <li
-                key={index}
-                className={
-                  selectedIndex === index
-                    ? "list-group-item active"
-                    : "list-group-item"
-                }
-                aria-current="true"
-                onClick={() => setSelectedIndex(index)}
-              >
-                {item.displayName}
-              </li>
-            );
-          })}
-      </ul>
+      <div className="scroll-div border pt-3">
+        <ul className="list-group p-3">
+          {trafficData &&
+            trafficData.map((item: any, index) => {
+              return (
+                <li
+                  key={index}
+                  className={
+                    selectedIndex === index
+                      ? "list-group-item active"
+                      : "list-group-item"
+                  }
+                  aria-current="true"
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  {item.displayName}
+                </li>
+              );
+            })}
+        </ul>
+      </div>
     </>
   );
 }
