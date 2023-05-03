@@ -11,22 +11,20 @@ function MainScreen() {
   const [param, setParam] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const url = "http://localhost:5000/traffic/traffic/abc"; // This can be placed in an dot env file
+  const urlTraffic = "http://localhost:5000/traffic/traffic/"; // This can be placed in an dot env file
 
   useEffect(() => {
     const isoDate = DateTime.fromISO(
-      startDate.toISOString().replace(/\.\d+Z/, "Z")
+      startDate.toISOString().replace(/\.\d+Z/, "Z") // zero out milliseconds
     ).toISO();
 
-    setParam(isoDate ? isoDate.replace(".000", "") : "");
+    setParam(isoDate ? isoDate.replace(".000", "") : ""); // remove milliseconds
   }, [startDate]);
 
-  const handleClick = () => {
-    console.log("PARAM", param);
-
+  const handleSearchClick = () => {
     setLoading(true);
 
-    fetch(url)
+    fetch(urlTraffic + param)
       .then((res) => {
         return res.json();
       })
@@ -39,70 +37,99 @@ function MainScreen() {
       });
   };
 
+  const handleItemClick = (index: number) => {
+    setSelectedIndex(index);
+  };
+
   return (
     <>
-      <div className="p-3">
-        <DatePicker
-          selected={startDate}
-          onChange={(date: Date) => setStartDate(date)}
-          showTimeSelect
-          timeFormat="p"
-          timeIntervals={1}
-          dateFormat="Pp"
-        />
+      <div className="card ms-3 mt-3 me-5">
+        <div className="card-header fw-bold">Enter date and time</div>
+        <div className="ps-3 pb-3 mt-3">
+          <DatePicker
+            selected={startDate}
+            onChange={(date: Date) => setStartDate(date)}
+            showTimeSelect
+            timeFormat="p"
+            timeIntervals={1}
+            dateFormat="Pp"
+          />
+        </div>
+        <div className="ps-3 mb-3">
+          {!loading && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => handleSearchClick()}
+              disabled={loading}
+            >
+              Search
+            </button>
+          )}
+          {loading && (
+            <button className="btn btn-primary" type="button" disabled>
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Loading...
+            </button>
+          )}
+        </div>
       </div>
-      <div className="ps-3">
-        {!loading && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => handleClick()}
-            disabled={loading}
-          >
-            Search
-          </button>
-        )}
-        {loading && (
-          <button className="btn btn-primary" type="button" disabled>
-            <span
-              className="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            ></span>
-            Loading...
-          </button>
-        )}
-      </div>
-      <div
-        className="scroll-div border mt-3"
-        style={{ display: trafficData.length ? "block" : "none" }}
-      >
-        <ul className="list-group p-3">
-          {trafficData &&
-            trafficData.map((item: any, index: number) => {
-              return (
-                <li
-                  key={index}
-                  className={
-                    selectedIndex === index
-                      ? "list-group-item active"
-                      : "list-group-item"
-                  }
-                  aria-current="true"
-                  onClick={() => setSelectedIndex(index)}
+
+      {trafficData.length > 0 && (
+        <div className="container ms-1 mt-3">
+          <div className="row">
+            <div className="col-9">
+              <div className="card">
+                <div className="card-header fw-bold">List of locations</div>
+                <div
+                  className="scroll-div"
+                  style={{ display: trafficData.length ? "block" : "none" }}
                 >
-                  {item.displayName}
-                </li>
-              );
-            })}
-        </ul>
-      </div>
+                  <ul className="list-group">
+                    {trafficData.map((item: any, index: number) => {
+                      return (
+                        <li
+                          key={index}
+                          className={
+                            selectedIndex === index
+                              ? "list-group-item active"
+                              : "list-group-item"
+                          }
+                          aria-current="true"
+                          onClick={() => handleItemClick(index)}
+                        >
+                          {item.displayName}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="col-3">
+              {trafficData && selectedIndex !== -1 && (
+                <div className="card text-center">
+                  <div className="card-header fw-bold">Weather</div>
+                  <div>{trafficData[selectedIndex].weather}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {trafficData && selectedIndex !== -1 && (
-        <img
-          src={trafficData[selectedIndex].image}
-          className="card-img-top"
-          alt="traffic-image"
-        ></img>
+        <div className="card text-center ms-3 mt-3 me-5">
+          <div className="card-header fw-bold">Screenshot</div>
+          <img
+            src={trafficData[selectedIndex].image}
+            className="card-img-top"
+            alt="traffic-image"
+          ></img>
+        </div>
       )}
     </>
   );
