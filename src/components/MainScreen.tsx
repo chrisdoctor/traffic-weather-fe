@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { DateTime } from "luxon";
 import "../App.css";
+import DateTimeEntry from "./DateTimeEntry";
+import Locations from "./Locations";
+import Weather from "./Weather";
+import Screenshot from "./Screentshot";
 
 function MainScreen() {
   const [startDate, setStartDate] = useState(new Date());
@@ -23,6 +26,8 @@ function MainScreen() {
 
   const handleSearchClick = () => {
     setLoading(true);
+    setTrafficData([]);
+    setSelectedIndex(-1);
 
     fetch(urlTraffic + param)
       .then((res) => {
@@ -43,93 +48,35 @@ function MainScreen() {
 
   return (
     <>
-      <div className="card ms-3 mt-3 me-5">
-        <div className="card-header fw-bold">Enter date and time</div>
-        <div className="ps-3 pb-3 mt-3">
-          <DatePicker
-            selected={startDate}
-            onChange={(date: Date) => setStartDate(date)}
-            showTimeSelect
-            timeFormat="p"
-            timeIntervals={1}
-            dateFormat="Pp"
-          />
-        </div>
-        <div className="ps-3 mb-3">
-          {!loading && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => handleSearchClick()}
-              disabled={loading}
-            >
-              Search
-            </button>
-          )}
-          {loading && (
-            <button className="btn btn-primary" type="button" disabled>
-              <span
-                className="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              Loading...
-            </button>
-          )}
-        </div>
-      </div>
+      <DateTimeEntry
+        selected={startDate}
+        setSelected={setStartDate}
+        loading={loading}
+        onClick={handleSearchClick}
+      ></DateTimeEntry>
 
       {trafficData.length > 0 && (
         <div className="container ms-1 mt-3">
           <div className="row">
             <div className="col-9">
-              <div className="card">
-                <div className="card-header fw-bold">List of locations</div>
-                <div
-                  className="scroll-div"
-                  style={{ display: trafficData.length ? "block" : "none" }}
-                >
-                  <ul className="list-group">
-                    {trafficData.map((item: any, index: number) => {
-                      return (
-                        <li
-                          key={index}
-                          className={
-                            selectedIndex === index
-                              ? "list-group-item active"
-                              : "list-group-item"
-                          }
-                          aria-current="true"
-                          onClick={() => handleItemClick(index)}
-                        >
-                          {item.displayName}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
+              <Locations
+                trafficData={trafficData}
+                selected={selectedIndex}
+                onClick={handleItemClick}
+              ></Locations>
             </div>
             <div className="col-3">
               {trafficData && selectedIndex !== -1 && (
-                <div className="card text-center">
-                  <div className="card-header fw-bold">Weather</div>
-                  <div>{trafficData[selectedIndex].weather}</div>
-                </div>
+                <Weather
+                  weatherForecast={trafficData[selectedIndex].weather}
+                ></Weather>
               )}
             </div>
           </div>
         </div>
       )}
       {trafficData && selectedIndex !== -1 && (
-        <div className="card text-center ms-3 mt-3 me-5">
-          <div className="card-header fw-bold">Screenshot</div>
-          <img
-            src={trafficData[selectedIndex].image}
-            className="card-img-top"
-            alt="traffic-image"
-          ></img>
-        </div>
+        <Screenshot imgSrc={trafficData[selectedIndex].image}></Screenshot>
       )}
     </>
   );
